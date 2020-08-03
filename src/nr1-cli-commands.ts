@@ -1,10 +1,8 @@
-const fs = require("fs");
-const os = require("os");
-
-import { profile } from "console";
+import { getCurrentProfile, getProfiles } from "./utils/profile";
 import * as vscode from "vscode";
 
 import runCommand from "./utils/run-command";
+import { updateStatusBarProfile } from "./extension";
 
 export const createNerdpack = (nerdpackName: string) =>
   `nr1 create -t nerdpack -n ${nerdpackName}`;
@@ -30,11 +28,9 @@ const setProfile = (profileName: string | undefined) =>
   `nr1 profiles:default -n ${profileName?.replace(" (current)", "")}`;
 
 export const selectProfile = async () => {
-  const credentialPath = `${os.homedir()}/.newrelic/credentials.json`;
-  const defaultPath = `${os.homedir()}/.newrelic/default-profile.json`;
+  const profiles = getProfiles();
+  const currentDefault = getCurrentProfile();
 
-  const profiles = JSON.parse(fs.readFileSync(credentialPath));
-  const currentDefault = JSON.parse(fs.readFileSync(defaultPath));
   const profileNames = Object.keys(profiles).map((profileName) => {
     if (profileName === currentDefault) {
       return `${profileName} (current default)`;
@@ -48,5 +44,6 @@ export const selectProfile = async () => {
       vscode.window.showInformationMessage(
         `Default profile updated to ${profileName}`
       );
+    updateStatusBarProfile();
   });
 };

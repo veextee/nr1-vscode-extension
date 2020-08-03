@@ -1,3 +1,4 @@
+import { getCurrentProfile } from "./utils/profile";
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
@@ -13,6 +14,8 @@ import getResponseHandlerForCreate from "./response-handlers/create-nerdpack";
  * Create and open a workspace on nr1Create
  * On all other commands, present a picker based on folders in the workspace that have an nr1.json
  *******/
+
+let statusBarProfile: vscode.StatusBarItem;
 
 const nr1Create = async ({ name, filePath }: any) =>
   runCommand(
@@ -48,7 +51,15 @@ const nr1RunNerdpack = () => {
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+  statusBarProfile = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    100
+  );
+  statusBarProfile.command = "vs-code-test.selectProfile";
+
   context.subscriptions.push(
+    statusBarProfile,
+
     vscode.commands.registerCommand("vs-code-test.createCatalog", async () => {
       nr1CreateCatalog();
     }),
@@ -86,6 +97,8 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  updateStatusBarProfile();
+
   vscode.commands.registerCommand("vs-code-test.publishNerdpack", async () => {
     const channel = await pickChannel();
     publishNerdpack(channel);
@@ -115,6 +128,17 @@ export function activate(context: vscode.ExtensionContext) {
     "vs-code-test.selectProfile",
     cliCommands.selectProfile
   );
+}
+
+export function updateStatusBarProfile(): void {
+  const currentProfile = getCurrentProfile();
+  console.log(currentProfile);
+  if (currentProfile) {
+    statusBarProfile.text = currentProfile;
+    statusBarProfile.show();
+  } else {
+    statusBarProfile.hide();
+  }
 }
 
 // this method is called when your extension is deactivated
